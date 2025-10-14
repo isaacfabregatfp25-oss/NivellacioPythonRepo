@@ -67,5 +67,4 @@ while aciertoFinal == False and numIntentos > 0:
         print(f"Has adivinado la palabra: {palabraSecreta}")
         aciertoFinal = True
     else:
-        compruebaIntentos(numIntentos)
-        
+        compruebaIntentos(numIntentos)        
