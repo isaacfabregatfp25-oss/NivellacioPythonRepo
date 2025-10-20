@@ -65,7 +65,6 @@ def disparar(tauler_oponent, fila, col):
         return False
 
 def vaixell_enfonsat(tauler, fila, col):
-    # Comprovar si la part tocada forma part d'un vaixell completament destruït
     for r in range(max(0, fila-1), min(tauler, fila+2)):
         for c in range(max(0, col-1), min(tauler, col+2)):
             if tauler[r][c] == "O":
