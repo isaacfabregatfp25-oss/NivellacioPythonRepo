@@ -1,102 +1,123 @@
 """Hundir la flota (3p)"""
 
-import time
+import random
+import string
 
-def crearTaulell(maxF, maxC):
-    m = []
-    for _ in range(maxF):
-        fila = ['·'] * maxC
-        m.append(fila)
-    return m
+def crear_tauler():
+    return [["~" for _ in range(tauler)] for _ in range(tauler)]
 
-def escull(text, maxVal):
-    while(True):
-        num = int(input(f"{text} (0-{maxVal-1}): "))
-        if 0 <= num < maxVal:
-            return num
-        else:
-            print("Valor fora del rang.")
-
-def posarVaixells(tauler, n):
-    print("Col·loca els teus vaixells:")
-    contador = 0
-    while contador < n:
-        fila = escull("Fila", len(tauler))
-        col = escull("Columna", len(tauler[0]))
-        if tauler[fila][col] == '·':
-            tauler[fila][col] = 'B'
-            contador += 1
-            imprimirTaulell(tauler, True)
-        else:
-            print("Posició ocupada per un vaixell.")           
-    print("Tots els vaixells col·locats.\n")
-    time.sleep(2)
-
-def ferTirada(tauler, fila, col):
-    if tauler[fila][col] == 'B':
-        tauler[fila][col] = 'X'
-        print("Tocat")
-        return True
-    elif tauler[fila][col] in ['X', 'O']:
-        print("Ja has disparat aqui")
-    else:
-        tauler[fila][col] = 'O'
-        print("Aigua...")
-    return False    
-
-def imprimirTaulell(tauler, mostrar=False):
-    print("\n   " + " ".join(str(i) for i in range(len(tauler[0]))))
+def mostrar_tauler(tauler, amagar_vaixells=True):
+    print("  " + " ".join(string.ascii_uppercase[:tauler]))
     for i, fila in enumerate(tauler):
-        if mostrar:
-            print(f"{i}  " + " ".join(fila))
-        else:            
-            print(f"{i}  " + " ".join(['·' if c == 'B' else c for c in fila]))
-    print("\n")
+        fila_mostrar = []
+        for c in fila:
+            if amagar_vaixells and c == "O":
+                fila_mostrar.append("~")
+            else:
+                fila_mostrar.append(c)
+        print(f"{i+1:2} " + " ".join(fila_mostrar))
+    print()
 
-def comprovaGuanyador(tauler):
-    for fila in tauler:
-        if 'B' in fila:
-            return False        
-    return True
-        
-
-max = 5
-num_vaixells = 4
-
-print("\n\t\tHundir la flota")
-
-tauler1 = crearTaulell(max, max)
-tauler2 =crearTaulell(max, max)
-
-print("Jugador 1, prepara't per col·locar els teus vaixells.")
-posarVaixells(tauler1, num_vaixells)
-print("\n" * 50)
-
-print("Jugador 2, prepara't per col·locar els teus vaixells.")
-posarVaixells(tauler2, num_vaixells)
-print("\n" * 50)
-
-torn = 1
-fi = False
-
-while not fi:
-    print(f"\n===== Torn del jugador {torn} =====")
-    if torn == 1:
-        imprimirTaulell(tauler2, False)
-        fila = escull("Fila per disparar", max)
-        col = escull("Columna per disparar", max)
-        ferTirada(tauler2, fila, col)
-        if comprovaGuanyador(tauler2):
-            fi = True
-            print("Joc acabat, jugador 1 ha guanyat!")
+def es_posicio_valida(tauler, fila, col, mida, orientacio):
+    if orientacio == "H":
+        if col + mida > tauler:
+            return False
+        return all(tauler[fila][col+i] == "~" for i in range(mida))
     else:
-        imprimirTaulell(tauler1, False)
-        fila = escull("Fila per disparar", max)
-        col = escull("Columna per disparar", max)
-        ferTirada(tauler1, fila, col)
-        if comprovaGuanyador(tauler1):
-            fi = True
-            print("Joc acabat, jugador 2 ha guanyat!")
+        if fila + mida > tauler:
+            return False
+        return all(tauler[fila+i][col] == "~" for i in range(mida))
 
-    torn = 2 if torn == 1 else 1
-    time.sleep(2)
+def col·locar_vaixell(tauler, mida):
+    while True:
+        orientacio = random.choice(["H", "V"])
+        fila = random.randint(0, tauler-1)
+        col = random.randint(0, tauler-1)
+        if es_posicio_valida(tauler, fila, col, mida, orientacio):
+            if orientacio == "H":
+                for i in range(mida):
+                    tauler[fila][col+i] = "O"
+            else:
+                for i in range(mida):
+                    tauler[fila+i][col] = "O"
+            break
+
+def preparar_tauler():
+    tauler = crear_tauler()
+    for mida in tamany_vaixell:
+        col·locar_vaixell(tauler, mida)
+    return tauler
+
+def disparar(tauler_oponent, fila, col):
+    if tauler_oponent[fila][col] == "O":
+        tauler_oponent[fila][col] = "X"
+        if vaixell_enfonsat(tauler_oponent, fila, col):
+            print("💥 Vaixell enfonsat!")
+        else:
+            print("🔥 Tocat!")
+        return True
+    elif tauler_oponent[fila][col] in ["~", "*"]:
+        tauler_oponent[fila][col] = "*"
+        print("💧 Aigua.")
+        return False
+    else:
+        print("Ja has disparat aquí.")
+        return False
+
+def vaixell_enfonsat(tauler, fila, col):
+    # Comprovar si la part tocada forma part d'un vaixell completament destruït
+    for r in range(max(0, fila-1), min(tauler, fila+2)):
+        for c in range(max(0, col-1), min(tauler, col+2)):
+            if tauler[r][c] == "O":
+                return False
+    return True
+
+def tots_els_vaixells_enfonsats(tauler):
+    return all(cell != "O" for fila in tauler for cell in fila)
+
+def coordenada_a_index(coord):
+    try:
+        col = string.ascii_uppercase.index(coord[0].upper())
+        fila = int(coord[1:]) - 1
+        if 0 <= fila < tauler and 0 <= col < tauler:
+            return fila, col
+    except:
+        pass
+    return None, None
+
+
+tauler = 10
+tamany_vaixell = [4, 3, 3, 2, 2]
+
+print("Benvinguts a UNDÍ LA FLOTA!")
+tauler1 = preparar_tauler()
+tauler2 = preparar_tauler()
+torn = 1
+
+while True:
+    if torn == 1:
+        print("\n--- Torn del Jugador 1 ---")
+        mostrar_tauler(tauler2, amagar_vaixells=True)
+        coord = input("Introdueix coordenada (ex: A5): ").strip().upper()
+        fila, col = coordenada_a_index(coord)
+        if fila is None:
+            print("Coordenada invàlida.")
+            continue
+        disparar(tauler2, fila, col)
+        if tots_els_vaixells_enfonsats(tauler2):
+            print("Jugador 1 ha guanyat!")
+            break
+        torn = 2
+    else:
+        print("\n--- Torn del Jugador 2 ---")
+        mostrar_tauler(tauler1, amagar_vaixells=True)
+        coord = input("Introdueix coordenada (ex: B3): ").strip().upper()
+        fila, col = coordenada_a_index(coord)
+        if fila is None:
+            print("Coordenada invàlida.")
+            continue
+        disparar(tauler1, fila, col)
+        if tots_els_vaixells_enfonsats(tauler1):
+            print("Jugador 2 ha guanyat!")
+            break
+        torn = 1
