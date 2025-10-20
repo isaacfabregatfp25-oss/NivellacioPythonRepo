@@ -9,11 +9,11 @@ def crearTaulell(maxF, maxC):
         m.append(fila)
     return m
 
-def escull (a):
+def escull(a):
     num=0
 
     while(True):
-        num=int(input("Escull la " + a + " (entre 0 i 2): "))
+        num=int(input(f"Escull la {a} (entre 0 i 2): "))
         if 0 <= num <= 2:
             print("\t")
             return num
@@ -46,7 +46,7 @@ def canviFitxa(fitxa):
 
 def imprimirTaulell(quadre, tirada):
     print("\n\t\t3 en ratlla")
-    print("Torn del jugador " + tirada + ":\n")
+    print(f"Torn del jugador {tirada}:\n")
     for i in quadre:
         print(' '.join(i))
     print("\n")
